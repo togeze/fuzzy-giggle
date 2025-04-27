@@ -11,8 +11,6 @@ from aiogram.types import Message, ReplyKeyboardMarkup, KeyboardButton, InlineKe
     CallbackQuery
 from aiogram.types import ReplyKeyboardRemove
 
-from aiogram_calendar import SimpleCalendar, SimpleCalendarCallback
-
 # Bot token can be obtained via https://t.me/BotFather
 TOKEN = "-"
 
@@ -31,11 +29,8 @@ async def settings_bot(message: Message):
 @dp.callback_query(F.data == 'Menu')
 async def menu(callback: CallbackQuery):
     await callback.answer("Работа")
-    #await callback.message.answer('Hi', reply_markup=kb)
-    await callback.message.answer(
-        "Выберите дату:",
-        reply_markup=await SimpleCalendar().start_calendar()
-    )
+    await callback.message.answer('Hi', reply_markup=kb)
+
 
 @dp.message(CommandStart())
 async def command_start_handler(message: Message) -> None:
@@ -76,8 +71,6 @@ async def main() -> None:
 
 
 if __name__ == "__main__":
-    try:
-        logging.basicConfig(level=logging.INFO, stream=sys.stdout)
-        asyncio.run(main())
-    except:
-        print("off bot")
+
+    logging.basicConfig(level=logging.INFO, stream=sys.stdout)
+    asyncio.run(main())
