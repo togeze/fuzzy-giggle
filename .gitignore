@@ -7,6 +7,7 @@ build/*
 .coverage
 
 htmlcov/*
+.idea/
 
 docs/build/*
 /.vs
