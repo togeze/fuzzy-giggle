@@ -1,0 +1,14 @@
+*~
+*.png
+*.pyc
+
+build/*
+
+.coverage
+
+htmlcov/*
+
+docs/build/*
+/.vs
+
+/env
