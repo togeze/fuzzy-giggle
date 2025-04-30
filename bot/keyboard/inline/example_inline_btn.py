@@ -3,6 +3,23 @@ from bot.keyboard.base import BaseInlineKeyboard
 class ExampleInline(BaseInlineKeyboard):
     def __init__(self):
         super().__init__()
-        self.add_row(("⏮ ", "prev"), ("⏭", "next"))
-        self.add_row(("📊 ", "progress"), ("🏠", "main_menu"))
+        self.add_row(("⏮ ", "prev"), ("⏭", "next"), ("🏠", "main_menu"))
         self.add_row(("ℹ️", "help"))
+
+    def inline_buttons_every_day_time(self):
+        """ Выводим эти значки, когда нажата кнопка 'Выбрать время' для ежедневных практик """
+        self.add_row(("00:00", "0_hour"), ("01:00", "1_hour"), ("09:00", "9_hour"), ("15:00", "15_hour"))
+
+    def inline_buttons_sketches_time(self):
+        """ Выводим эти значки, когда нажата кнопка 'Наброски' """
+        self.add_row(("3 мин", "3_min"), ("5 мин", "5_min"), ("7 мин", "7_min"), ("10 мин", "10_min"))
+
+    def inline_buttons_sketches_amount(self):
+        """ Выводим эти значки, когда нажата кнопка 'Наброски' и было выбрано время в inline_buttons_time """
+        self.add_row((":three:", "three"), (":four:", "four"), (":five:", "five"), (":six:", "six"), (":seven:", "seven"))
+
+    def inline_buttons_sketches_start(self):
+        """ Выводим эти значки, когда нажата кнопка 'Наброски' и было выбрано время в inline_buttons_time и кол-во inline_buttons_sketches_amount"""
+        self.add_row(("▶️ Начать", "start_sketches"))
+        self.add_row(("Изменить время", "fix_sketches_time"))
+        self.add_row(("Изменить количество", "fix_sketches_amount"))
