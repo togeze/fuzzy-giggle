@@ -3,7 +3,7 @@
 *.pyc
 
 build/*
-
+.env
 .coverage
 
 htmlcov/*

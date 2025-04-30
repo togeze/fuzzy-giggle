@@ -1,7 +1,10 @@
 import asyncio
 import logging
+import os
 import sys
-from os import getenv
+from dotenv import find_dotenv, load_dotenv
+
+load_dotenv(find_dotenv())
 
 from aiogram import Bot, Dispatcher, html, F
 from aiogram.client.default import DefaultBotProperties
@@ -12,7 +15,7 @@ from aiogram.types import Message, ReplyKeyboardMarkup, KeyboardButton, InlineKe
 from aiogram.types import ReplyKeyboardRemove
 
 # Bot token can be obtained via https://t.me/BotFather
-TOKEN = "-"
+TOKEN = os.getenv('TOKEN')
 
 # All handlers should be attached to the Router (or Dispatcher)
 
