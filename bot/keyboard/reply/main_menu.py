@@ -1,7 +1,6 @@
-from keyboards.base import BaseReplyKeyboard
+from bot.keyboard.base import BaseReplyKeyboard
 
 class MainMenuKeyboard(BaseReplyKeyboard):
     def __init__(self):
         super().__init__()
-        self.add_buttons_row(["Продолжить курс", "Выбрать время"])
-            .add_button("Мой прогресс")
+        self.add_buttons_row(["Продолжить курс", "Выбрать время"]).add_button("Мой прогресс")
