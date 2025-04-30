@@ -1,4 +1,4 @@
-from keyboards.reply.main_menu import MainMenuKeyboard
+from bot.keyboard.reply.main_menu import MainMenuKeyboard
 from aiogram.types import ReplyKeyboardMarkup, InlineKeyboardMarkup
 
 

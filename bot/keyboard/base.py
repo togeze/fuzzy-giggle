@@ -1,5 +1,5 @@
 from abc import ABC, abstractmethod
-from aiogram.types import ReplyKeyboardMarkup, InlineKeyboardMarkup
+from aiogram.types import ReplyKeyboardMarkup, InlineKeyboardMarkup, KeyboardButton
 from aiogram.utils.keyboard import ReplyKeyboardBuilder, InlineKeyboardBuilder
 
 class IKeyboardBuilder(ABC):
@@ -29,20 +29,23 @@ class BaseInlineKeyboard(IKeyboardBuilder):
             self.builder.button(text=text, callback_data=callback_data)
         return self.builder.as_markup()
 
-class BaseReplyKeyboard(IKeyboardBuilder):
+class BaseReplyKeyboard:
     def __init__(self):
         self.builder = ReplyKeyboardBuilder()
         self.buttons = []
 
     def add_button(self, text: str):
-        self.buttons.append(text)
+        self.buttons.append(KeyboardButton(text=text))
         return self
 
-    def add_buttons_row(self, buttons: list[str]):
-        self.buttons.extend(buttons)
+    def add_row(self, *texts: str):
+        row = [KeyboardButton(text=text) for text in texts]
+        self.buttons.extend(row)
         return self
 
     def build(self) -> ReplyKeyboardMarkup:
-        for text in self.buttons:
-            self.builder.add(text)
-        return self.builder.as_markup(resize_keyboard=True)
+        self.builder.add(*self.buttons)
+        return self.builder.as_markup(
+            resize_keyboard=True,
+            input_field_placeholder="Выберите действие"
+        )
