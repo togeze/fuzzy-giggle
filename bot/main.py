@@ -25,6 +25,7 @@ async def command_start_handler(message: Message) -> None:
     await message.answer(f"Hello, {html.bold(message.from_user.full_name)}!", reply_markup=KeyboardFactory.get_main_menu())
     await message.answer("Example", reply_markup=KeyboardFactory.get_example_inline_menu())
 
+
 async def main():
     await bot.delete_webhook(drop_pending_updates=True)
     await bot.delete_my_commands(scope=types.BotCommandScopeAllPrivateChats())
