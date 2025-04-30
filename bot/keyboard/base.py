@@ -32,19 +32,15 @@ class BaseInlineKeyboard(IKeyboardBuilder):
 class BaseReplyKeyboard:
     def __init__(self):
         self.builder = ReplyKeyboardBuilder()
-        self.buttons = []
-
-    def add_button(self, text: str):
-        self.buttons.append(KeyboardButton(text=text))
-        return self
+        self.rows = []
 
     def add_row(self, *texts: str):
-        row = [KeyboardButton(text=text) for text in texts]
-        self.buttons.extend(row)
+        self.rows.append([KeyboardButton(text=text) for text in texts])
         return self
 
     def build(self) -> ReplyKeyboardMarkup:
-        self.builder.add(*self.buttons)
+        for row in self.rows:
+            self.builder.row(*row)
         return self.builder.as_markup(
             resize_keyboard=True,
             input_field_placeholder="Выберите действие"
