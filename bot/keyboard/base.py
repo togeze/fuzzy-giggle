@@ -1,6 +1,6 @@
 from abc import ABC, abstractmethod
 from aiogram.types import ReplyKeyboardMarkup, InlineKeyboardMarkup, KeyboardButton
-from aiogram.utils.keyboard import ReplyKeyboardBuilder, InlineKeyboardBuilder
+from aiogram.utils.keyboard import ReplyKeyboardBuilder, InlineKeyboardBuilder, InlineKeyboardButton
 
 class IKeyboardBuilder(ABC):
     @abstractmethod
@@ -10,23 +10,19 @@ class IKeyboardBuilder(ABC):
 class BaseInlineKeyboard(IKeyboardBuilder):
     def __init__(self):
         self.builder = InlineKeyboardBuilder()
-        self.buttons = []
+        self.rows = []
 
-    def add_button(self, text: str, callback_data: str):
-        self.buttons.append((text, callback_data))
-        return self
-
-    def add_buttons_row(self, buttons: list[tuple[str, str]]):
-        self.buttons.extend(buttons)
-        return self
-
-    def adjust(self, *sizes: int):
-        self.builder.adjust(*sizes)
+    def add_row(self, *buttons: tuple[str, str]):
+        self.rows.append(buttons)
         return self
 
     def build(self) -> InlineKeyboardMarkup:
-        for text, callback_data in self.buttons:
-            self.builder.button(text=text, callback_data=callback_data)
+        for row in self.rows:
+            inline_buttons = [
+                InlineKeyboardButton(text=text, callback_data=data)
+                for text, data in row
+            ]
+            self.builder.row(*inline_buttons)
         return self.builder.as_markup()
 
 class BaseReplyKeyboard:
