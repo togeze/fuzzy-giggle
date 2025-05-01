@@ -14,8 +14,11 @@ class KeyboardService:
     def get_daily_start_keyboard(self):
         return self.strategy.get_daily_start_menu()
 
-    def get_sketches_keyboard(self):
-        return self.strategy.get_sketches_menu()
+    def get_sketches_time_keyboard(self):
+        return self.strategy.get_sketches_time_menu()
+
+    def get_sketches_amount_keyboard(self):
+        return self.strategy.get_sketches_amount_menu()
 
     def get_admin_keyboard(self):
         return self.strategy.get_admin_menu()

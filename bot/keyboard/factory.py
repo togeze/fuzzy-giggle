@@ -13,8 +13,11 @@ class KeyboardFactory:
     def get_daily_start_menu() -> ReplyKeyboardMarkup:
         return DailyStartMenuKeyboard().build()
     @staticmethod
-    def get_sketches_menu() -> ReplyKeyboardMarkup:
+    def get_sketches_time_menu() -> ReplyKeyboardMarkup:
         return ExampleInline().inline_buttons_sketches_time().build()
+    @staticmethod
+    def get_sketches_amount_menu() -> ReplyKeyboardMarkup:
+        return ExampleInline().inline_buttons_sketches_amount().build()
 
     @staticmethod
     def get_example_inline_menu() -> InlineKeyboardMarkup:
