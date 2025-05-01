@@ -6,7 +6,7 @@ class MainMenuKeyboard(BaseReplyKeyboard):
     def __init__(self):
         super().__init__()
         (self.add_row(button_names.btn_set_daily)
-         .add(button_names.btn_draw_now))
+         .add_row(button_names.btn_draw_now))
 
     def push_button_set_every_day_start(self):
         """ Переходим в это меню, когда:
