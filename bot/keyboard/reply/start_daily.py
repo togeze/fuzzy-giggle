@@ -7,3 +7,4 @@ class DailyStartMenuKeyboard(BaseReplyKeyboard):
         super().__init__()
         (self.add_row(button_names.btn_set_time, button_names.btn_daily_start)
          .add_row(button_names.btn_sketches).add_row(button_names.btn_back))
+        # TODO вернуть в main_menu как ф-ию с self

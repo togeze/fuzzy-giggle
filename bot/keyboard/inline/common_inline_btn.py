@@ -1,10 +1,8 @@
 from bot.keyboard.base import BaseInlineKeyboard
 
-class ExampleInline(BaseInlineKeyboard):
+class CommonInlineKeyboard(BaseInlineKeyboard):
     def __init__(self):
         super().__init__()
-        # self.add_row(("⏮ ", "prev"), ("⏭", "next"), ("🏠", "main_menu"))
-        # self.add_row(("ℹ️", "help"))
 
     def inline_buttons_every_day_time(self):
         """ Выводим эти значки, когда нажата кнопка 'Выбрать время' для ежедневных практик """

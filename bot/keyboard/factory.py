@@ -1,6 +1,5 @@
-from bot.keyboard.reply.main_menu import MainMenuKeyboard
-from bot.keyboard.reply.start_daily import DailyStartMenuKeyboard
-from bot.keyboard.inline.example_inline_btn import ExampleInline
+from bot.keyboard.reply.common_reply_btn import CommonMenuKeyboard
+from bot.keyboard.inline.common_inline_btn import CommonInlineKeyboard
 from bot.keyboard.inline.admin_panel import AdminPanelKeyboard
 from aiogram.types import ReplyKeyboardMarkup, InlineKeyboardMarkup
 
@@ -8,10 +7,10 @@ from aiogram.types import ReplyKeyboardMarkup, InlineKeyboardMarkup
 class KeyboardFactory:
     @staticmethod
     def get_main_menu() -> ReplyKeyboardMarkup:
-        return MainMenuKeyboard().build()
+        return CommonMenuKeyboard().build()
     @staticmethod
     def get_daily_start_menu() -> ReplyKeyboardMarkup:
-        return DailyStartMenuKeyboard().build()
+        return CommonMenuKeyboard().push_button_set_daily_start.build()
     @staticmethod
     def get_sketches_time_menu() -> ReplyKeyboardMarkup:
         return ExampleInline().inline_buttons_sketches_time().build()
