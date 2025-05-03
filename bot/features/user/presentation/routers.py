@@ -12,10 +12,26 @@ from bot.keyboard import button_names
 class UserRouter(BaseRouter):
     def register_handlers(self):
         self.router.message(Command("start"))(self.start_handler)
-        self.router.message(F.text == button_names.btn_set_daily)(self.start_daily)
-        self.router.message(F.text == button_names.btn_sketches)(self.sketches)
+        self.router.message(F.text == button_names.btn_set_daily)(self.set_daily_start)
+        self.router.message(F.text == button_names.btn_set_time)(self.set_daily_time)
+        self.router.message(F.text == button_names.btn_change_time)(self.set_daily_time)
+        self.router.message(F.text == button_names.btn_daily_start)(self.daily_start)
+        self.router.message(F.text == button_names.btn_daily_stop)(self.daily_stop)
+        self.router.message(F.text == button_names.btn_draw_now)(self.set_draw_now)
+        self.router.message(F.text == button_names.btn_sketches)(self.set_sketches)
+        self.router.message(F.text == button_names.btn_get_reference)(self.get_reference)
+        self.router.message(F.text == button_names.btn_get_task)(self.get_task)
+        self.router.message(F.text == button_names.btn_stop_exit)(self.stop_sketches)
+        self.router.message(F.text == button_names.btn_back)(self.back)
+        # прислать ежедневное задание: self.send_daily_task
+        # когда наброски закончились: self.end_sketches
+        self.router.callback_query(F.data.in_({"fix_sketches_time"}))(self.inline_get_fix_time)
+        self.router.callback_query(F.data.in_({"fix_sketches_amount"}))(self.inline_fix_amount)
+        self.router.callback_query(F.data.in_({"start_sketches"}))(self.inline_start_sketches)
         self.router.callback_query(F.data.in_({"3_min", "5_min", "7_min", "10_min"}))(self.inline_time)
+        self.router.callback_query(F.data.in_({"3_min_fix", "5_min_fix", "7_min_fix", "10_min_fix"}))(self.inline_fix_time)
         self.router.callback_query(F.data.in_({"3", "4", "5", "6", "7"}))(self.inline_amount)
+        self.router.callback_query(F.data.in_({"0_hour", "1_hour", "3_hour", "7_hour", "9_hour", "15_hour", "21_hour"}))(self.inline_daily_time)
 
     async def start_handler(self, message: types.Message, is_admin: bool):
         keyboard_service = KeyboardService(is_admin)
@@ -24,30 +40,161 @@ class UserRouter(BaseRouter):
             reply_markup=keyboard_service.get_main_keyboard()
         )
 
-    async def start_daily(self, message: types.Message, is_admin: bool):
+    async def set_daily_start(self, message: types.Message, is_admin: bool):
         keyboard_service = KeyboardService(is_admin)
         await message.answer(
             "pupupu",
             reply_markup=keyboard_service.get_daily_start_keyboard()
         )
 
-    async def sketches(self, message: types.Message, is_admin: bool):
+    async def set_draw_now(self, message: types.Message, is_admin: bool):
         keyboard_service = KeyboardService(is_admin)
+        await message.answer(
+            "pupupu",
+            reply_markup=keyboard_service.get_draw_now_keyboard()
+        )
+
+    async def set_daily_stop(self, message: types.Message, is_admin: bool):
+        keyboard_service = KeyboardService(is_admin)
+        await message.answer(
+            "pupupu",
+            reply_markup=keyboard_service.get_daily_stop_keyboard()
+        )
+
+    async def set_sketches(self, message: types.Message, is_admin: bool):
+        sketches_theme = self.get_sketches_theme()
+        keyboard_service = KeyboardService(is_admin)
+        await message.answer(f"Ваша тема для набросков - {sketches_theme}")
         await message.answer(
             "Выберите время на один набросок:",
             reply_markup=keyboard_service.get_sketches_time_keyboard()
         )
 
+    def get_sketches_theme(self):
+        sketches_theme = "руки"  # Тема набросков должна рандомно выбираться из названия папок, которые я собрала пока на ядиске
+        return sketches_theme
+
+    async def get_reference(self, message: types.Message, is_admin: bool):
+        keyboard_service = KeyboardService(is_admin)
+        await message.answer(  # выбираем одну рандомную картинку из всех папков с референсами на ядиске и присылаем
+            "Здесь будет рандомный референс"
+        )
+
+    async def get_task(self, message: types.Message, is_admin: bool):
+        keyboard_service = KeyboardService(is_admin)
+        await message.answer(  # выбираем по одному рандомному заданию из столбиков 'что' и 'как' в таблице и присылаем
+            "Что: здесь будет рандомное задание\nКак: здесь будет рандомное задание"
+        )
+
+    async def daily_start(self, message: types.Message, is_admin: bool):
+        keyboard_service = KeyboardService(is_admin)
+        await message.answer(
+            "Начнём присылать задание ежедневно в hh:mm",
+            reply_markup=keyboard_service.get_daily_stop_keyboard()
+        )
+
+    async def daily_stop(self, message: types.Message, is_admin: bool):
+        keyboard_service = KeyboardService(is_admin)
+        await message.answer(  # выбранное время ежедневных практик не сбрасывать
+            "Ежедневные практики приостановлены. Отдыхайте ❤️",
+            reply_markup=keyboard_service.get_daily_start_keyboard()
+        )
+
+    async def send_daily_task(self, message: types.Message, is_admin: bool):
+        """ Вызывается когда пора присылать ежедневное задание """
+        keyboard_service = KeyboardService(is_admin)
+        daily_theme = self.get_daily_theme()
+        await message.answer(
+            f"Тема дня: {daily_theme}"
+        )
+
+    def get_daily_theme(self):
+        daily_theme = "здесь будет новая тема на день"  # рандомно выбираем тему дня из соответствующего столбика таблицы
+        return daily_theme
+
+    async def set_daily_time(self, message: types.Message, is_admin: bool):
+        keyboard_service = KeyboardService(is_admin)
+        await message.answer(  #  если время не выбрано, по-умолчанию присылаем задания в 6 утра (?)
+            "Выберите время для ежедневных практик по Москве (UTC+03):",
+            reply_markup=keyboard_service.get_daily_time_keyboard()
+        )
+
+    async def inline_daily_time(self, callback: CallbackQuery, is_admin: bool):
+        keyboard_service = KeyboardService(is_admin)
+        time_ = int(callback.data[:-5])
+        print("Время практик = ",  time_, ": 00, id = ", callback.from_user.id)
+        await callback.message.answer(
+            f"Выбранное время {time_}:00")
+        await callback.answer()
+
     async def inline_time(self, callback: CallbackQuery, is_admin: bool):
         keyboard_service = KeyboardService(is_admin)
-        await callback.message.answer("Выберите количество набросков:", reply_markup=keyboard_service.get_sketches_amount_keyboard())
-        await callback.answer()
         time_ = int(callback.data[:-4])
-        print(time_, callback.from_user.id)
+        print("Время = ",  time_, "мин, id = ", callback.from_user.id)
+        await callback.message.answer(
+            "Выберите количество набросков:",
+            reply_markup=keyboard_service.get_sketches_amount_keyboard()
+        )
+        await callback.answer()
+
+    async def inline_fix_time(self, callback: CallbackQuery, is_admin: bool):
+        keyboard_service = KeyboardService(is_admin)
+        time_ = int(callback.data[:-8])
+        print("Время = ", time_, "мин, id = ", callback.from_user.id)
+        await callback.message.answer(
+            "Приготовьте свои любимые материалы!\nБудет N набросков раз в T минут",
+            reply_markup=keyboard_service.get_start_sketches_keyboard()
+        )
+        await callback.answer()
+
+    async def inline_get_fix_time(self, callback: CallbackQuery, is_admin: bool):
+        keyboard_service = KeyboardService(is_admin)
+        await callback.message.answer(
+            "Выберите время на один набросок:",
+            reply_markup=keyboard_service.get_sketches_fix_time_keyboard()
+        )
 
     async def inline_amount(self, callback: CallbackQuery, is_admin: bool):
         keyboard_service = KeyboardService(is_admin)
-        await callback.answer()
         amount_ = int(callback.data)
-        print(amount_, callback.from_user.id)
-        await callback.message.answer(f"Количество = {amount_}")
+        print("Количество = ",  amount_, ", id = ", callback.from_user.id)
+        # await callback.message.answer(f"Количество = {amount_}")
+        await callback.message.answer(
+            "Приготовьте свои любимые материалы!\nБудет N набросков раз в T минут",
+            reply_markup=keyboard_service.get_start_sketches_keyboard()
+        )
+        await callback.answer()
+
+    async def inline_fix_amount(self, callback: CallbackQuery, is_admin: bool):
+        keyboard_service = KeyboardService(is_admin)
+        await callback.message.answer("Выберите количество набросков:", reply_markup=keyboard_service.get_sketches_amount_keyboard())
+        await callback.answer()
+
+    async def inline_start_sketches(self, callback: CallbackQuery, is_admin: bool):
+        keyboard_service = KeyboardService(is_admin)
+        await callback.message.answer(
+            "Здесь будут присылаться картинки с ядиска для выбранной темы N штук раз в T минут",
+            reply_markup=keyboard_service.get_stop_sketches_keyboard()
+        )
+
+    async def stop_sketches(self, message: types.Message, is_admin: bool):
+        keyboard_service = KeyboardService(is_admin)
+        await message.answer(
+            "Наброски остановлены",
+                 reply_markup=keyboard_service.get_draw_now_keyboard()
+        )
+
+    async def end_sketches(self, message: types.Message, is_admin: bool):
+        """ Эта ф-ия запускается, когда наброски кончились сами, их не прервали кнопкой btn_stop_exit """
+        keyboard_service = KeyboardService(is_admin)
+        await message.answer(
+            "Наброски окончены. Если есть желание, можете выложить результаты в соцсети с тегом #GigDrawBot",
+            reply_markup=keyboard_service.get_draw_now_keyboard()
+        )
+
+    async def back(self, message: types.Message, is_admin: bool):
+        keyboard_service = KeyboardService(is_admin)
+        await message.answer(
+            "pupupu",
+                 reply_markup=keyboard_service.get_main_keyboard()
+        )
