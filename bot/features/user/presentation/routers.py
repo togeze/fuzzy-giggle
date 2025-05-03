@@ -1,6 +1,6 @@
 from xmlrpc.client import DateTime
 
-from aiogram.types import CallbackQuery
+from aiogram.types import CallbackQuery, FSInputFile
 
 from bot.core.routers.base_routers import BaseRouter
 from aiogram import F, types
@@ -76,8 +76,8 @@ class UserRouter(BaseRouter):
 
     async def get_reference(self, message: types.Message, is_admin: bool):
         keyboard_service = KeyboardService(is_admin)
-        await message.answer(  # выбираем одну рандомную картинку из всех папков с референсами на ядиске и присылаем
-            "Здесь будет рандомный референс"
+        await message.answer_photo(  # выбираем одну рандомную картинку из всех папков с референсами на ядиске и присылаем
+             photo=FSInputFile("data/6.jpeg"), caption="Здесь будет рандомный референс"
         )
 
     async def get_task(self, message: types.Message, is_admin: bool):
