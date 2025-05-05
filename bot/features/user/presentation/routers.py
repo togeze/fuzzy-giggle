@@ -12,7 +12,7 @@ from bot.keyboard import button_names
 class UserRouter(BaseRouter):
     def register_handlers(self):
         self.router.message(Command("start"))(self.start_handler)
-        self.router.message(Command("about"))(self.info_about)
+        self.router.message(Command("info"))(self.info_about)
         self.router.message(F.text == button_names.btn_set_daily)(self.set_daily_start)
         self.router.message(F.text == button_names.btn_set_time)(self.set_daily_time)
         self.router.message(F.text == button_names.btn_change_time)(self.set_daily_time)
@@ -46,7 +46,9 @@ class UserRouter(BaseRouter):
     async def info_about(self, message: types.Message, is_admin: bool):
         keyboard_service = KeyboardService(is_admin)
         await message.answer(
-            "Это бот помогает начать рисовать ежедневно. \nВопросы, пожелания и предложения присылайте на почту gigdraw123@gmail.com \nЕсли есть желание, можно поблагодарить авторов донатом",
+            "Это бот помогает поддерживать мотивацию для ежедневного рисования, а также предлагает нескучные задания или идеи, когда желание рисовать "
+            "возникло прямо сейчас. \n\nРезультаты можно выкладывать в соцсети с хэштегом #gigdrawbot \n\nВопросы, пожелания и предложения присылайте на почту "
+            "gigdraw123@gmail.com \n\nЕсли есть желание, можно поддержать авторов донатом",
             reply_markup=keyboard_service.get_main_keyboard()
         )
 
