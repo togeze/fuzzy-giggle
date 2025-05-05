@@ -32,7 +32,9 @@ class UserRouter(BaseRouter):
         self.router.callback_query(F.data.in_({"3_min", "5_min", "7_min", "10_min"}))(self.inline_time)
         self.router.callback_query(F.data.in_({"3_min_fix", "5_min_fix", "7_min_fix", "10_min_fix"}))(self.inline_fix_time)
         self.router.callback_query(F.data.in_({"3", "4", "5", "6", "7"}))(self.inline_amount)
-        self.router.callback_query(F.data.in_({"0_hour", "1_hour", "3_hour", "7_hour", "9_hour", "15_hour", "21_hour"}))(self.inline_daily_time)
+        self.router.callback_query(F.data.in_({"0_hour", "1_hour", "2_hour", "3_hour", "4_hour", "5_hour", "6_hour", "7_hour", "8_hour", "9_hour",
+                                               "10_hour", "11_hour", "12_hour", "13_hour", "14_hour", "15_hour", "16_hour", "17_hour", "18_hour",
+                                               "19_hour", "20_hour", "21_hour", "22_hour", "23_hour"}))(self.inline_daily_time)
 
     async def start_handler(self, message: types.Message, is_admin: bool):
         keyboard_service = KeyboardService(is_admin)
@@ -79,7 +81,7 @@ class UserRouter(BaseRouter):
         )
 
     def get_sketches_theme(self):
-        sketches_theme = "руки"  # Тема набросков должна рандомно выбираться из названия папок, которые я собрала пока на ядиске
+        sketches_theme = "здесь будет рандомная тема для набросков"  # Тема набросков должна рандомно выбираться из названия папок, которые я собрала пока на ядиске
         return sketches_theme
 
     async def get_reference(self, message: types.Message, is_admin: bool):
@@ -97,7 +99,7 @@ class UserRouter(BaseRouter):
     async def daily_start(self, message: types.Message, is_admin: bool):
         keyboard_service = KeyboardService(is_admin)
         await message.answer(
-            "Начнём присылать задание ежедневно в hh:mm",
+            "Будем присылать задание ежедневно в hh:mm",
             reply_markup=keyboard_service.get_daily_stop_keyboard()
         )
 
@@ -123,7 +125,7 @@ class UserRouter(BaseRouter):
     async def set_daily_time(self, message: types.Message, is_admin: bool):
         keyboard_service = KeyboardService(is_admin)
         await message.answer(  #  если время не выбрано, по-умолчанию присылаем задания в 6 утра (?)
-            "Выберите время для ежедневных практик по Москве (UTC+03):",
+            "Выберите время по Москве (UTC+03) для ежедневных практик:",
             reply_markup=keyboard_service.get_daily_time_keyboard()
         )
 
@@ -181,7 +183,7 @@ class UserRouter(BaseRouter):
     async def inline_start_sketches(self, callback: CallbackQuery, is_admin: bool):
         keyboard_service = KeyboardService(is_admin)
         await callback.message.answer(
-            "Здесь будут присылаться картинки с ядиска для выбранной темы N штук раз в T минут",
+            "Здесь будут присылаться картинки для выбранной темы N штук раз в T минут",
             reply_markup=keyboard_service.get_stop_sketches_keyboard()
         )
 
@@ -196,7 +198,7 @@ class UserRouter(BaseRouter):
         """ Эта ф-ия запускается, когда наброски кончились сами, их не прервали кнопкой btn_stop_exit """
         keyboard_service = KeyboardService(is_admin)
         await message.answer(
-            "Наброски окончены. Если есть желание, можете выложить результаты в соцсети с тегом #GigDrawBot",
+            "Наброски окончены. Если есть желание, можете выложить результаты в соцсети с тегом #gigdrawbot",
             reply_markup=keyboard_service.get_draw_now_keyboard()
         )
 
