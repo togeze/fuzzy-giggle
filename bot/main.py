@@ -7,6 +7,10 @@ from settings.commands import user_cmds, admin_cmds
 from core.middlewares.role_checker import RoleMiddleware
 from features.admin.presentation.routers import AdminRouter
 from features.user.presentation.routers import UserRouter
+from bot.core.dependencies import get_uow, engine
+from bot.database.repositories import TaskRepository, CategoryRepository, UserRepository
+from bot.core.services.task_service import TaskService
+from bot.database.models import Base
 
 
 ALLOWED_UPDATES = ['message, edited_message']
@@ -14,9 +18,12 @@ ALLOWED_UPDATES = ['message, edited_message']
 
 bot = Bot(token=TOKEN)
 dp = Dispatcher()
-
+uow = get_uow()
 
 async def main():
+    async with engine.begin() as conn:
+        await conn.run_sync(Base.metadata.create_all)
+
     await bot.delete_webhook(drop_pending_updates=True)
     await bot.delete_my_commands(scope=types.BotCommandScopeAllPrivateChats())
     await bot.set_my_commands(commands=user_cmds, scope=types.BotCommandScopeAllPrivateChats())
@@ -29,14 +36,21 @@ async def main():
 
     dp.update.middleware(RoleMiddleware())
 
-    user_router = UserRouter()
-    admin_router = AdminRouter()
+    async with uow.atomic() as session:
+        task_repo = TaskRepository(session)
+        category_repo = CategoryRepository(session)
+        user_repo = UserRepository(session)
 
-    user_router.register_handlers()
-    admin_router.register_handlers()
+        task_service = TaskService(task_repo, category_repo, user_repo)
 
-    dp.include_router(user_router.get_router)
-    dp.include_router(admin_router.get_router)
+        user_router = UserRouter(task_service)
+        admin_router = AdminRouter()
+
+        user_router.register_handlers()
+        admin_router.register_handlers()
+
+        dp.include_router(user_router.router)
+        dp.include_router(admin_router.router)
 
     try:
         await dp.start_polling(
@@ -47,4 +61,5 @@ async def main():
     finally:
         await bot.session.close()
 
-asyncio.run(main())
+if __name__ == "__main__":
+    asyncio.run(main())

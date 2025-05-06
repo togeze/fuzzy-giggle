@@ -7,9 +7,14 @@ from aiogram import F, types
 from aiogram.filters import Command
 from bot.core.services.keyboard_service import KeyboardService
 from bot.keyboard import button_names
+from bot.core.services.task_service import TaskService
 
 
 class UserRouter(BaseRouter):
+    def __init__(self, task_service: TaskService):
+        super().__init__()
+        self.task_service = task_service
+
     def register_handlers(self):
         self.router.message(Command("start"))(self.start_handler)
         self.router.message(Command("info"))(self.info_about)
@@ -38,6 +43,14 @@ class UserRouter(BaseRouter):
 
     async def start_handler(self, message: types.Message, is_admin: bool):
         keyboard_service = KeyboardService(is_admin)
+
+        user = await self.task_service.user_repo.get_by_telegram_id(message.from_user.id)
+        if not user:
+            await self.task_service.user_repo.create_user(
+                telegram_id=message.from_user.id,
+                is_admin=is_admin
+            )
+
         await message.answer(
             "Добро пожаловать!",
             reply_markup=keyboard_service.get_main_keyboard()
@@ -93,10 +106,14 @@ class UserRouter(BaseRouter):
         )
 
     async def get_task(self, message: types.Message, is_admin: bool):
-        keyboard_service = KeyboardService(is_admin)
-        await message.answer(  # выбираем по одному рандомному заданию из столбиков 'что' и 'как' в таблице и присылаем
-            "Что: здесь будет рандомное задание\nКак: здесь будет рандомное задание"
-        )
+        what_task, how_task = await self.task_service.get_random_task_pair(message.from_user.id)
+
+        if not what_task or not how_task:
+            await message.answer("Задания временно отсутствуют")
+            return
+
+        response = f"Что: {what_task}\nКак: {how_task}"
+        await message.answer(response)
 
     async def daily_start(self, message: types.Message, is_admin: bool):
         keyboard_service = KeyboardService(is_admin)
