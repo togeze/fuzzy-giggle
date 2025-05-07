@@ -1,7 +1,7 @@
 from abc import ABC, abstractmethod
 from typing import Optional, Tuple
 from bot.core.services.admin_service import IAdminService
-from bot.database.models import Category, What
+from bot.database.models import Category, What, How
 from bot.settings.config import CATEGORY_TYPES
 
 
@@ -10,10 +10,11 @@ class ITaskService(ABC):
 
 
 class TaskService(ITaskService, IAdminService):
-    def __init__(self, category_repo, user_repo, what_repo):
+    def __init__(self, category_repo, user_repo, what_repo, how_repo):
         self.category_repo = category_repo
         self.user_repo = user_repo
         self.what_repo = what_repo
+        self.how_repo = how_repo
 
     async def add_category(self, user_id: int, category_type: str, name: str) -> str:
         user = await self.user_repo.get_by_telegram_id(user_id)
@@ -21,7 +22,7 @@ class TaskService(ITaskService, IAdminService):
             return "❌ Доступ запрещен. Требуются права администратора."
 
         if category_type.lower() not in CATEGORY_TYPES:
-            return "❌ Некорректный тип категории. Допустимые значения: how, what, image."
+            return f"❌ Некорректный тип категории. Допустимые значения: {CATEGORY_TYPES}."
 
         existing_category = await self.category_repo.get_by_name_and_type(name, category_type)
         if existing_category:
@@ -57,6 +58,31 @@ class TaskService(ITaskService, IAdminService):
             )
             await self.what_repo.add(new_task)
             return (f"✅ Задание для 'what' успешно добавлено:\n"
+                    f"Категория: {category_name}\n"
+                    f"Текст: {task_text}")
+        except Exception as e:
+            return f"❌ Ошибка при добавлении задания: {str(e)}"
+
+    async def add_how_task(self, user_id: int, category_name: str, task_text: str) -> str:
+        user = await self.user_repo.get_by_telegram_id(user_id)
+        if not user or not user.is_admin:
+            return "❌ Доступ запрещен. Требуются права администратора."
+
+        category = await self.category_repo.get_by_name_and_type(
+            name=category_name,
+            category_type='how'
+        )
+
+        if not category:
+            return f"❌ Категория '{category_name}' типа 'how' не найдена."
+
+        try:
+            new_task = How(
+                text=task_text.strip(),
+                category_id=category.id
+            )
+            await self.how_repo.add(new_task)
+            return (f"✅ Задание для 'how' успешно добавлено:\n"
                     f"Категория: {category_name}\n"
                     f"Текст: {task_text}")
         except Exception as e:
