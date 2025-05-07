@@ -8,7 +8,7 @@ from core.middlewares.role_checker import RoleMiddleware
 from features.admin.presentation.routers import AdminRouter
 from features.user.presentation.routers import UserRouter
 from bot.core.dependencies import get_uow, engine
-from bot.database.repositories import TaskRepository, CategoryRepository, UserRepository
+from bot.database.repositories import CategoryRepository, UserRepository, WhatRepository
 from bot.core.services.task_service import TaskService
 from bot.database.models import Base
 
@@ -37,17 +37,15 @@ async def main():
     dp.update.middleware(RoleMiddleware())
 
     async with uow.atomic() as session:
-        task_repo = TaskRepository(session)
         category_repo = CategoryRepository(session)
         user_repo = UserRepository(session)
+        what_repo = WhatRepository(session)
 
-        task_service = TaskService(task_repo, category_repo, user_repo)
+        task_service = TaskService(category_repo, user_repo, what_repo)
 
         user_router = UserRouter(task_service)
-        admin_router = AdminRouter()
+        admin_router = AdminRouter(task_service)
 
-        user_router.register_handlers()
-        admin_router.register_handlers()
 
         dp.include_router(user_router.router)
         dp.include_router(admin_router.router)

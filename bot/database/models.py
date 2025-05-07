@@ -1,61 +1,102 @@
-from sqlalchemy import Column, Integer, String, Boolean, ForeignKey, DateTime, Table
-from sqlalchemy.orm import relationship, declarative_base
+from email.policy import default
+from typing import Optional, List
+
+from sqlalchemy import Column, Integer, String, Text, ForeignKey, DateTime, Table, UniqueConstraint
+from sqlalchemy.orm import relationship, DeclarativeBase, mapped_column, Mapped
 from sqlalchemy.sql import func
 
-Base = declarative_base()
+CATEGORY_TYPES = ['how', 'what', 'image']
 
-# Ассоциативная таблица для использованных категорий
-user_seen_category = Table(
-    'user_seen_category',
+class Base(DeclarativeBase):
+    created_at: Mapped[DateTime] = mapped_column(DateTime(timezone=True), default=func.now())
+    updated_at: Mapped[DateTime] = mapped_column(DateTime(timezone=True), default=func.now(), onupdate=func.now())
+
+
+
+user_disabled_categories = Table(
+    'user_disabled_categories',
     Base.metadata,
     Column('user_id', Integer, ForeignKey('users.id')),
-    Column('category_id', Integer, ForeignKey('categories.id'))
+    Column('category_id', Integer, ForeignKey('categories.id')),
+    UniqueConstraint('user_id', 'category_id', name='uq_user_category')
 )
 
-# Ассоциативная таблица для отключенных категорий
-user_disabled_category = Table(
-    'user_disabled_category',
+user_tasks = Table(
+    'user_tasks',
     Base.metadata,
     Column('user_id', Integer, ForeignKey('users.id')),
-    Column('category_id', Integer, ForeignKey('categories.id'))
+    Column('how_id', Integer, ForeignKey('how.id')),
+    Column('what_id', Integer, ForeignKey('what.id')),
+    Column('assigned_at', DateTime(timezone=True), default=func.now())
 )
 
 
 class User(Base):
     __tablename__ = 'users'
 
-    id = Column(Integer, primary_key=True)
-    telegram_id = Column(Integer, unique=True, nullable=False)
-    is_admin = Column(Boolean, default=False)
-    daily_time = Column(Integer)
-    sketches_time = Column(Integer)
-    sketches_amount = Column(Integer)
-    created_at = Column(DateTime(timezone=True), server_default=func.now())
+    id: Mapped[int] = mapped_column(primary_key=True)
+    telegram_id: Mapped[int] = mapped_column(unique=True, index=True)
+    username: Mapped[Optional[str]] = mapped_column(String(64))
+    is_admin: Mapped[bool] = mapped_column(default=False)
 
-    seen_categories = relationship("Category", secondary=user_seen_category)
-    disabled_categories = relationship("Category", secondary=user_disabled_category, lazy="selectin")
+    # Relationships
+    disabled_categories: Mapped[List['Category']] = relationship(
+        secondary=user_disabled_categories,
+        back_populates='users'
+    )
+    assigned_tasks: Mapped[List['How']] = relationship(
+        secondary=user_tasks,
+        back_populates='users'
+    )
 
 
 class Category(Base):
     __tablename__ = 'categories'
 
-    id = Column(Integer, primary_key=True)
-    name = Column(String(50), unique=True, nullable=False)
-    type = Column(String(10), nullable=False)  # 'что' или 'как'
-    is_active = Column(Boolean, default=True)
-    created_at = Column(DateTime(timezone=True), server_default=func.now())
+    id: Mapped[int] = mapped_column(primary_key=True)
+    name: Mapped[str] = mapped_column(String(50), unique=True)
+    type: Mapped[str] = mapped_column(String(10))  # 'how' или 'what' или 'image'
+
+    # Relationships
+    how_tasks: Mapped[List['How']] = relationship(back_populates='category')
+    what_tasks: Mapped[List['What']] = relationship(back_populates='category')
+    images: Mapped[List['Image']] = relationship(back_populates='category')
+    users: Mapped[List['User']] = relationship(
+        secondary=user_disabled_categories,
+        back_populates='disabled_categories'
+    )
 
 
-class Task(Base):
-    __tablename__ = 'tasks'
+class How(Base):
+    __tablename__ = 'how'
 
-    id = Column(Integer, primary_key=True)
-    content = Column(String(255), nullable=False)
-    category_id = Column(Integer, ForeignKey('categories.id'))
-    type = Column(String(10), nullable=False)  # 'что' или 'как'
-    created_at = Column(DateTime(timezone=True), server_default=func.now())
+    id: Mapped[int] = mapped_column(primary_key=True)
+    text: Mapped[str] = mapped_column(Text)
+    category_id: Mapped[int] = mapped_column(ForeignKey('categories.id'))
 
-    category = relationship("Category", back_populates="tasks")
+    # Relationships
+    category: Mapped['Category'] = relationship(back_populates='how_tasks')
+    users: Mapped[List['User']] = relationship(
+        secondary=user_tasks,
+        back_populates='assigned_tasks'
+    )
 
 
-Category.tasks = relationship("Task", back_populates="category")
+class What(Base):
+    __tablename__ = 'what'
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    text: Mapped[str] = mapped_column(Text)
+    category_id: Mapped[int] = mapped_column(ForeignKey('categories.id'))
+
+    category: Mapped['Category'] = relationship(back_populates='what_tasks')
+
+
+class Image(Base):
+    __tablename__ = 'images'
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    file_path: Mapped[str] = mapped_column(String(255))
+    category_id: Mapped[int] = mapped_column(ForeignKey('categories.id'))
+
+    category: Mapped['Category'] = relationship(back_populates='images')

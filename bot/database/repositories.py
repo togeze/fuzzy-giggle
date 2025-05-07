@@ -1,8 +1,11 @@
 from abc import ABC, abstractmethod
+from typing import Optional
+
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select, delete, update, func
 from sqlalchemy.orm import selectinload
-from bot.database.models import Task, Category, User
+from bot.database.models import Category, User, What
+from sqlalchemy import true, false
 
 
 class BaseRepository(ABC):
@@ -10,24 +13,18 @@ class BaseRepository(ABC):
         self.session = session
 
 
-class TaskRepository(BaseRepository):
-    async def get_random_task(self, task_type: str, exclude_categories: list[int]):
-        stmt = select(Task).join(Category).where(
-            Task.type == task_type,
-            Category.id.notin_(exclude_categories)
-        ).order_by(func.random()).limit(1)
+class CategoryRepository(BaseRepository):
+    async def get_by_name_and_type(self, name: str, category_type: str):
+        stmt = select(Category).where(
+            func.lower(Category.name) == func.lower(name),
+            func.lower(Category.type) == category_type.lower()
+        )
         result = await self.session.execute(stmt)
         return result.scalar_one_or_none()
 
-
-class CategoryRepository(BaseRepository):
-    async def get_by_type(self, category_type: str):
-        stmt = select(Category).where(
-            Category.type == category_type,
-            Category.is_active == True
-        )
-        result = await self.session.execute(stmt)
-        return result.scalars().all()
+    async def add(self, category: Category):
+        self.session.add(category)
+        await self.session.commit()
 
 
 class UserRepository(BaseRepository):
@@ -39,13 +36,23 @@ class UserRepository(BaseRepository):
         result = await self.session.execute(stmt)
         return result.scalar_one_or_none()
 
-    async def update_user_settings(self, user_id: int, **kwargs):
-        stmt = update(User).where(User.id == user_id).values(**kwargs)
-        await self.session.execute(stmt)
+    async def update_user(self, user: User, **kwargs):
+        for key, value in kwargs.items():
+            setattr(user, key, value)
         await self.session.commit()
+        return user
 
-    async def create_user(self, telegram_id: int, is_admin: bool = False):
-        new_user = User(telegram_id=telegram_id, is_admin=is_admin)
+    async def create_user(self, telegram_id: int, username: Optional[str], is_admin: bool = False):
+        new_user = User(
+            telegram_id=telegram_id,
+            username=username,
+            is_admin=is_admin
+        )
         self.session.add(new_user)
         await self.session.commit()
         return new_user
+
+class WhatRepository(BaseRepository):
+    async def add(self, what_task: What):
+        self.session.add(what_task)
+        await self.session.commit()

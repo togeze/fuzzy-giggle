@@ -14,6 +14,7 @@ class UserRouter(BaseRouter):
     def __init__(self, task_service: TaskService):
         super().__init__()
         self.task_service = task_service
+        self.register_handlers()
 
     def register_handlers(self):
         self.router.message(Command("start"))(self.start_handler)
@@ -43,13 +44,24 @@ class UserRouter(BaseRouter):
 
     async def start_handler(self, message: types.Message, is_admin: bool):
         keyboard_service = KeyboardService(is_admin)
+        user_repo = self.task_service.user_repo
+        current_username = message.from_user.username
 
-        user = await self.task_service.user_repo.get_by_telegram_id(message.from_user.id)
+        user = await user_repo.get_by_telegram_id(message.from_user.id)
+
         if not user:
-            await self.task_service.user_repo.create_user(
+            user = await user_repo.create_user(
                 telegram_id=message.from_user.id,
+                username=current_username,
                 is_admin=is_admin
             )
+        else:
+            if user.username != current_username:
+                await user_repo.update_user(
+                    user,
+                    username=current_username,
+                    is_admin=is_admin or user.is_admin
+                )
 
         await message.answer(
             "Добро пожаловать!",
@@ -106,14 +118,7 @@ class UserRouter(BaseRouter):
         )
 
     async def get_task(self, message: types.Message, is_admin: bool):
-        what_task, how_task = await self.task_service.get_random_task_pair(message.from_user.id)
-
-        if not what_task or not how_task:
-            await message.answer("Задания временно отсутствуют")
-            return
-
-        response = f"Что: {what_task}\nКак: {how_task}"
-        await message.answer(response)
+        await message.answer("Задания временно отсутствуют")
 
     async def daily_start(self, message: types.Message, is_admin: bool):
         keyboard_service = KeyboardService(is_admin)

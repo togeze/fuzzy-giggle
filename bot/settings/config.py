@@ -5,3 +5,4 @@ load_dotenv()
 
 TOKEN = os.getenv("TOKEN")
 ADMINS = list(map(int, os.getenv("ADMINS", "").split(",")))
+CATEGORY_TYPES = list(map(str, os.getenv("CATEGORY_TYPES", "").split(",")))
