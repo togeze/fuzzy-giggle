@@ -22,6 +22,13 @@ class CategoryRepository(BaseRepository):
         result = await self.session.execute(stmt)
         return result.scalar_one_or_none()
 
+    async def get_by_type(self, category_type: str):
+        stmt = select(Category).where(
+            func.lower(Category.type) == category_type.lower()
+        )
+        result = await self.session.execute(stmt)
+        return [i[0] for i in result.all()]
+
     async def add(self, category: Category):
         self.session.add(category)
         await self.session.commit()

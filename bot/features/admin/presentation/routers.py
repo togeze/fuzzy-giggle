@@ -14,6 +14,7 @@ class AdminRouter(BaseRouter):
     def register_handlers(self):
         self.router.message(Command("admin"))(self.admin_handler)
         self.router.message(Command("add_category"))(self.add_category_handler)
+        self.router.message(Command("get_categories"))(self.get_categories_handler)
         self.router.message(Command("add_what"))(self.add_what_handler)
         self.router.message(Command("add_how"))(self.add_how_handler)
 
@@ -40,6 +41,22 @@ class AdminRouter(BaseRouter):
             user_id=message.from_user.id,
             category_type=category_type,
             name=category_name
+        )
+        await message.answer(response)
+
+    async def get_categories_handler(self, message: types.Message):
+        command_parts = message.text.split(maxsplit=1)
+        if len(command_parts) < 2:
+            return await message.answer(
+                "❌ Неправильный формат команды.\n"
+                "Используйте: /get_categories <тип>\n"
+                "Пример: /get_categories what"
+            )
+
+        _, category_type = command_parts
+        response = await self.task_service.get_categories(
+            user_id=message.from_user.id,
+            category_type=category_type
         )
         await message.answer(response)
 
