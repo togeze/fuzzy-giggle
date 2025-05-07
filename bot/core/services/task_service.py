@@ -2,7 +2,7 @@ from abc import ABC, abstractmethod
 from typing import Optional, Tuple
 from bot.core.services.admin_service import IAdminService
 from bot.database.models import Category, What
-
+from bot.settings.config import CATEGORY_TYPES
 
 
 class ITaskService(ABC):
@@ -20,7 +20,7 @@ class TaskService(ITaskService, IAdminService):
         if not user or not user.is_admin:
             return "❌ Доступ запрещен. Требуются права администратора."
 
-        if category_type.lower() not in ['how', 'what', 'image']:
+        if category_type.lower() not in CATEGORY_TYPES:
             return "❌ Некорректный тип категории. Допустимые значения: how, what, image."
 
         existing_category = await self.category_repo.get_by_name_and_type(name, category_type)

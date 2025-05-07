@@ -1,11 +1,10 @@
 from email.policy import default
 from typing import Optional, List
-
+from bot.settings.config import CATEGORY_TYPES
 from sqlalchemy import Column, Integer, String, Text, ForeignKey, DateTime, Table, UniqueConstraint
 from sqlalchemy.orm import relationship, DeclarativeBase, mapped_column, Mapped
 from sqlalchemy.sql import func
 
-CATEGORY_TYPES = ['how', 'what', 'image']
 
 class Base(DeclarativeBase):
     created_at: Mapped[DateTime] = mapped_column(DateTime(timezone=True), default=func.now())
