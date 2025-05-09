@@ -73,7 +73,7 @@ class How(Base):
     __tablename__ = 'how'
 
     id: Mapped[int] = mapped_column(primary_key=True)
-    text: Mapped[str] = mapped_column(Text)
+    text: Mapped[str] = mapped_column(Text, unique=True)
     category_id: Mapped[int] = mapped_column(ForeignKey('categories.id'))
 
     # Relationships
@@ -88,7 +88,7 @@ class What(Base):
     __tablename__ = 'what'
 
     id: Mapped[int] = mapped_column(primary_key=True)
-    text: Mapped[str] = mapped_column(Text)
+    text: Mapped[str] = mapped_column(Text, unique=True)
     category_id: Mapped[int] = mapped_column(ForeignKey('categories.id'))
 
     category: Mapped['Category'] = relationship(back_populates='what_tasks')
