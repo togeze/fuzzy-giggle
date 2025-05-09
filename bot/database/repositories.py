@@ -27,10 +27,7 @@ class CategoryRepository(BaseRepository):
             func.lower(Category.type) == category_type.lower()
         )
         result = await self.session.execute(stmt)
-        ss = result.all()[0][0]
-        print(ss)
-        print(ss.name)
-        return [i[0] for i in result.all()]
+        return ', '.join([i[0].name for i in result.all()])
 
     async def add(self, category: Category):
         existing = await self.get_by_name_and_type(category.name, category.type)
