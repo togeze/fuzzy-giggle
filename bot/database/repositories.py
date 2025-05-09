@@ -4,7 +4,7 @@ from typing import Optional
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select, delete, update, func
 from sqlalchemy.orm import selectinload
-from bot.database.models import Category, User, What
+from bot.database.models import Category, User, What, How
 from sqlalchemy import true, false
 
 
@@ -22,7 +22,17 @@ class CategoryRepository(BaseRepository):
         result = await self.session.execute(stmt)
         return result.scalar_one_or_none()
 
+    async def get_by_type(self, category_type: str):
+        stmt = select(Category).where(
+            func.lower(Category.type) == category_type.lower()
+        )
+        result = await self.session.execute(stmt)
+        return [i[0] for i in result.all()]
+
     async def add(self, category: Category):
+        existing = await self.get_by_name_and_type(category.name, category.type)
+        if existing:
+            raise ValueError("Категория с таким именем и типом уже существует")
         self.session.add(category)
         await self.session.commit()
 
@@ -55,4 +65,9 @@ class UserRepository(BaseRepository):
 class WhatRepository(BaseRepository):
     async def add(self, what_task: What):
         self.session.add(what_task)
+        await self.session.commit()
+
+class HowRepository(BaseRepository):
+    async def add(self, how_task: How):
+        self.session.add(how_task)
         await self.session.commit()

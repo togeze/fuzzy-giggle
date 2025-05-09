@@ -1,11 +1,10 @@
 from email.policy import default
 from typing import Optional, List
-
+from bot.settings.config import CATEGORY_TYPES
 from sqlalchemy import Column, Integer, String, Text, ForeignKey, DateTime, Table, UniqueConstraint
 from sqlalchemy.orm import relationship, DeclarativeBase, mapped_column, Mapped
 from sqlalchemy.sql import func
 
-CATEGORY_TYPES = ['how', 'what', 'image']
 
 class Base(DeclarativeBase):
     created_at: Mapped[DateTime] = mapped_column(DateTime(timezone=True), default=func.now())
@@ -52,9 +51,12 @@ class User(Base):
 
 class Category(Base):
     __tablename__ = 'categories'
+    __table_args__ = (
+        UniqueConstraint('name', 'type', name='uq_category_name_type'),
+    )
 
     id: Mapped[int] = mapped_column(primary_key=True)
-    name: Mapped[str] = mapped_column(String(50), unique=True)
+    name: Mapped[str] = mapped_column(String(50))
     type: Mapped[str] = mapped_column(String(10))  # 'how' или 'what' или 'image'
 
     # Relationships
