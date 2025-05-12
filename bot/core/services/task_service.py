@@ -1,8 +1,9 @@
+from os import listdir, path
 from abc import ABC, abstractmethod
 from typing import Optional, Tuple
 from bot.core.services.admin_service import IAdminService
 from bot.database.models import Category, What, How
-from bot.settings.config import CATEGORY_TYPES
+from bot.settings.config import CATEGORY_TYPES, IMAGES_PATH
 
 
 class ITaskService(ABC):
@@ -22,7 +23,7 @@ class TaskService(ITaskService, IAdminService):
             return "❌ Доступ запрещен. Требуются права администратора."
 
         if category_type.lower() not in CATEGORY_TYPES:
-            return f"❌ Некорректный тип категории. Допустимые значения: {CATEGORY_TYPES}."
+            return f"❌ Некорректный тип категории. Допустимые значения: {', '.join(CATEGORY_TYPES)}."
 
         existing_category = await self.category_repo.get_by_name_and_type(name, category_type)
         if existing_category:
@@ -44,7 +45,7 @@ class TaskService(ITaskService, IAdminService):
             return "❌ Доступ запрещен. Требуются права администратора."
 
         if category_type.lower() not in CATEGORY_TYPES:
-            return f"❌ Некорректный тип категории. Допустимые значения: {CATEGORY_TYPES}."
+            return f"❌ Некорректный тип категории. Допустимые значения: {', '.join(CATEGORY_TYPES)}."
 
         try:
             names = await self.category_repo.get_by_type(category_type)
@@ -104,3 +105,19 @@ class TaskService(ITaskService, IAdminService):
                     f"Текст: {task_text}")
         except Exception as e:
             return f"❌ Ошибка при добавлении задания: {str(e)}"
+
+    async def fill_categories_images(self):
+        # get all folder names from images_path
+        image_category_names = [item for item in listdir(IMAGES_PATH) if path.isdir(path.join(IMAGES_PATH, item))]
+
+        # fill database categories image
+        try:
+            for category_name in image_category_names:
+                new_category = Category(
+                    name=category_name,
+                    type='image'
+                )
+                await self.category_repo.add(new_category)
+                print(f"✅ Категории image успешно добавлены")
+        except Exception as e:
+            print(f"❌ Ошибка при добавлении категорий image: {str(e)}")

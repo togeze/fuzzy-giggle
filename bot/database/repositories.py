@@ -36,7 +36,6 @@ class CategoryRepository(BaseRepository):
         self.session.add(category)
         await self.session.commit()
 
-
 class UserRepository(BaseRepository):
     async def get_by_telegram_id(self, telegram_id: int):
         stmt = select(User).options(

@@ -113,6 +113,7 @@ class UserRouter(BaseRouter):
 
     async def get_reference(self, message: types.Message, is_admin: bool):
         keyboard_service = KeyboardService(is_admin)
+        photo_path = self.get_random_image()
         await message.answer_photo(  # выбираем одну рандомную картинку из всех папков с референсами на ядиске и присылаем
              photo=FSInputFile("data/6.jpeg"), caption="Здесь будет рандомный референс"
         )
