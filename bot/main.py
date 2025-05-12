@@ -35,6 +35,7 @@ async def main():
 
     async with uow.atomic() as session:
         start_bot_service = StartBotService(session)
+        await start_bot_service.initialize()
 
         dp.include_router(start_bot_service.user_router.router)
         dp.include_router(start_bot_service.admin_router.router)
