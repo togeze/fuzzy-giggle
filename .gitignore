@@ -12,6 +12,5 @@ htmlcov/*
 docs/build/*
 /.vs
 
-/data
 /env
 *.db

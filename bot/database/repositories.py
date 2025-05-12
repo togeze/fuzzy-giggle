@@ -4,7 +4,7 @@ from typing import Optional
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select, delete, update, func
 from sqlalchemy.orm import selectinload
-from bot.database.models import Category, User, What, How
+from bot.database.models import Category, User, What, How, Image
 from sqlalchemy import true, false
 
 
@@ -69,4 +69,9 @@ class WhatRepository(BaseRepository):
 class HowRepository(BaseRepository):
     async def add(self, how_task: How):
         self.session.add(how_task)
+        await self.session.commit()
+
+class ImageRepository(BaseRepository):
+    async def add(self, image_task: Image):
+        self.session.add(image_task)
         await self.session.commit()
