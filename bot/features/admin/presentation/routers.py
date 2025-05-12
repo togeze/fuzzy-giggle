@@ -61,9 +61,9 @@ class AdminRouter(BaseRouter):
         await message.answer(response)
 
     async def add_handler(self, message: types.Message):
-        category_type = Command.commands
-        print(category_type)
         command_parts = message.text.split(maxsplit=2)
+        category_type = command_parts[0][5:]
+        print(category_type)
         if len(command_parts) < 3:
             return await message.answer(
                 "❌ Неправильный формат команды.\n"
@@ -75,23 +75,6 @@ class AdminRouter(BaseRouter):
         response = await self.task_service.add_task(
             user_id=message.from_user.id,
             category_type=category_type,
-            category_name=category_name,
-            task_text=task_text
-        )
-        await message.answer(response)
-
-    async def add_how_handler(self, message: types.Message):
-        command_parts = message.text.split(maxsplit=2)
-        if len(command_parts) < 3:
-            return await message.answer(
-                "❌ Неправильный формат команды.\n"
-                "Используйте: /add_how <категория> <текст задания>\n"
-                "Пример: /add_how материал акварелью"
-            )
-
-        _, category_name, task_text = command_parts
-        response = await self.task_service.add_task(
-            user_id=message.from_user.id,
             category_name=category_name,
             task_text=task_text
         )
