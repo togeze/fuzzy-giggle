@@ -26,7 +26,8 @@ user_tasks = Table(
     Column('user_id', Integer, ForeignKey('users.id')),
     Column('how_id', Integer, ForeignKey('how.id')),
     Column('what_id', Integer, ForeignKey('what.id')),
-    Column('assigned_at', DateTime(timezone=True), default=func.now())
+    Column('assigned_at', DateTime(timezone=True), default=func.now()),
+    UniqueConstraint('user_id', 'how_id', 'what_id', name='uq_user_how_what')
 )
 
 

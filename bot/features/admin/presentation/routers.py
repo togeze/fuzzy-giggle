@@ -15,8 +15,9 @@ class AdminRouter(BaseRouter):
         self.router.message(Command("admin"))(self.admin_handler)
         self.router.message(Command("add_category"))(self.add_category_handler)
         self.router.message(Command("get_categories"))(self.get_categories_handler)
-        self.router.message(Command("add_what"))(self.add_what_handler)
-        self.router.message(Command("add_how"))(self.add_how_handler)
+        self.router.message(Command("add_what"))(self.add_handler)
+        self.router.message(Command("add_how"))(self.add_handler)
+        self.router.message(Command("update_db"))(self.update_database)
 
     async def admin_handler(self, message: types.Message, is_admin: bool):
         if not is_admin:
@@ -27,7 +28,10 @@ class AdminRouter(BaseRouter):
             reply_markup=keyboard_service.get_admin_keyboard()
         )
 
-    async def add_category_handler(self, message: types.Message):
+    async def add_category_handler(self, message: types.Message, is_admin: bool):
+        if not is_admin:
+            return await message.answer("❌ Доступ запрещен. Требуются права администратора.")
+
         command_parts = message.text.split(maxsplit=2)
         if len(command_parts) < 3:
             return await message.answer(
@@ -42,9 +46,11 @@ class AdminRouter(BaseRouter):
             category_type=category_type,
             name=category_name
         )
-        await message.answer(response)
+        return await message.answer(response)
 
-    async def get_categories_handler(self, message: types.Message):
+    async def get_categories_handler(self, message: types.Message, is_admin: bool):
+        if not is_admin:
+            return await message.answer("❌ Доступ запрещен. Требуются права администратора.")
         command_parts = message.text.split(maxsplit=1)
         if len(command_parts) < 2:
             return await message.answer(
@@ -58,38 +64,39 @@ class AdminRouter(BaseRouter):
             user_id=message.from_user.id,
             category_type=category_type
         )
-        await message.answer(response)
+        return await message.answer(response)
 
-    async def add_what_handler(self, message: types.Message):
+    async def add_handler(self, message: types.Message, is_admin: bool):
+        if not is_admin:
+            return await message.answer("❌ Доступ запрещен. Требуются права администратора.")
+
         command_parts = message.text.split(maxsplit=2)
+        category_type = command_parts[0][5:]
+        print(category_type)
         if len(command_parts) < 3:
             return await message.answer(
                 "❌ Неправильный формат команды.\n"
-                "Используйте: /add_what <категория> <текст задания>\n"
-                "Пример: /add_what Животные Нарисовать кота в стиле кубизма"
+                f"Используйте: /add_{category_type} <категория> <текст задания>\n"
+                f"Пример: /add_{category_type} Животные Нарисовать кота в стиле кубизма"
             )
 
         _, category_name, task_text = command_parts
-        response = await self.task_service.add_what_task(
+        response = await self.task_service.add_task(
             user_id=message.from_user.id,
+            category_type=category_type,
             category_name=category_name,
             task_text=task_text
         )
-        await message.answer(response)
+        return await message.answer(response)
 
-    async def add_how_handler(self, message: types.Message):
-        command_parts = message.text.split(maxsplit=2)
-        if len(command_parts) < 3:
-            return await message.answer(
-                "❌ Неправильный формат команды.\n"
-                "Используйте: /add_how <категория> <текст задания>\n"
-                "Пример: /add_how материал акварелью"
-            )
+    async def update_database(self, message: types.Message, is_admin: bool):
+        if not is_admin:
+            return await message.answer("❌ Доступ запрещен. Требуются права администратора.")
 
-        _, category_name, task_text = command_parts
-        response = await self.task_service.add_how_task(
-            user_id=message.from_user.id,
-            category_name=category_name,
-            task_text=task_text
+        response = await self.task_service.fill_database_from_csv(
+            user_id=message.from_user.id
         )
         await message.answer(response)
+
+        response = await self.task_service.fill_database_image()
+        return await message.answer(response)
