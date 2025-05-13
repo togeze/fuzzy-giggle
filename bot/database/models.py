@@ -74,7 +74,7 @@ class How(Base):
     __tablename__ = 'how'
 
     id: Mapped[int] = mapped_column(primary_key=True)
-    text: Mapped[str] = mapped_column(Text, unique=True)
+    text: Mapped[str] = mapped_column(Text)
     category_id: Mapped[int] = mapped_column(ForeignKey('categories.id'))
 
     # Relationships

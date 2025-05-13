@@ -23,8 +23,6 @@ class TaskService(ITaskService, IAdminService):
         self.image_repo = image_repo
 
     async def add_category(self, category_type: str, name: str) -> str:
-        # if not await self.is_admin(user_id):
-        #     return "❌ Доступ запрещен. Требуются права администратора."
 
         if category_type.lower() not in CATEGORY_TYPES:
             return f"❌ Некорректный тип категории. Допустимые значения: {', '.join(CATEGORY_TYPES)}."
@@ -44,8 +42,6 @@ class TaskService(ITaskService, IAdminService):
             return f"❌ Ошибка при добавлении категории: {str(e)}"
 
     async def get_categories(self, category_type: str) -> str:
-        # if not await self.is_admin(user_id):
-        #     return "❌ Доступ запрещен. Требуются права администратора."
 
         if category_type.lower() not in CATEGORY_TYPES:
             return f"❌ Некорректный тип категории. Допустимые значения: {', '.join(CATEGORY_TYPES)}."
@@ -61,9 +57,9 @@ class TaskService(ITaskService, IAdminService):
 
     async def add_task(self, category_type: str, category_name: str, task_text: str) -> str:
         """ category_type: how, what, image """
-        # if not await self.is_admin(user_id):
-        #     return "❌ Доступ запрещен. Требуются права администратора."
 
+        print(f"category_type = {category_type}")
+        print(f"category_name = {category_name}")
         category = await self.category_repo.get_by_name_and_type(
             name=category_name,
             category_type=category_type
@@ -98,6 +94,7 @@ class TaskService(ITaskService, IAdminService):
                     f"Категория: {category_name}\n"
                     f"Текст: {task_text}")
         except Exception as e:
+            print(f"❌ Ошибка при добавлении задания: {str(e)}")
             return f"❌ Ошибка при добавлении задания: {str(e)}"
 
     async def fill_database_image(self):
@@ -113,11 +110,8 @@ class TaskService(ITaskService, IAdminService):
         try:
             for category_name in image_category_names:
                 # fill categories image
-                new_category = Category(
-                    name=category_name,
-                    type='image'
-                )
-                await self.category_repo.add(new_category)
+                await self.add_category('image', category_name)
+
                 # fill table images
                 image_names = [item for item in listdir(path.join(IMAGES_PATH, category_name))]
                 for image_name in image_names:
@@ -135,18 +129,6 @@ class TaskService(ITaskService, IAdminService):
     async def clear_categories_image(self):
         # get all folder names from images_path
         image_category_names = [item for item in listdir(IMAGES_PATH) if path.isdir(path.join(IMAGES_PATH, item))]
-
-        # fill database categories image
-        try:
-            for category_name in image_category_names:
-                new_category = Category(
-                    name=category_name,
-                    type='image'
-                )
-                await self.category_repo.add(new_category)
-            print(f"✅ Категории image успешно добавлены: {', '.join(image_category_names)}")
-        except Exception as e:
-            print(f"❌ Ошибка при добавлении категорий image: {str(e)}")
 
     async def fill_database_from_csv(self):
         # чтение данных из csv
