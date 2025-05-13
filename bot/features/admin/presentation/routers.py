@@ -17,6 +17,7 @@ class AdminRouter(BaseRouter):
         self.router.message(Command("get_categories"))(self.get_categories_handler)
         self.router.message(Command("add_what"))(self.add_handler)
         self.router.message(Command("add_how"))(self.add_handler)
+        self.router.message(Command("update_db"))(self.update_database)
 
     async def admin_handler(self, message: types.Message, is_admin: bool):
         if not is_admin:
@@ -27,7 +28,10 @@ class AdminRouter(BaseRouter):
             reply_markup=keyboard_service.get_admin_keyboard()
         )
 
-    async def add_category_handler(self, message: types.Message):
+    async def add_category_handler(self, message: types.Message, is_admin: bool):
+        if not is_admin:
+            return await message.answer("❌ Доступ запрещен. Требуются права администратора.")
+
         command_parts = message.text.split(maxsplit=2)
         if len(command_parts) < 3:
             return await message.answer(
@@ -42,9 +46,11 @@ class AdminRouter(BaseRouter):
             category_type=category_type,
             name=category_name
         )
-        await message.answer(response)
+        return await message.answer(response)
 
-    async def get_categories_handler(self, message: types.Message):
+    async def get_categories_handler(self, message: types.Message, is_admin: bool):
+        if not is_admin:
+            return await message.answer("❌ Доступ запрещен. Требуются права администратора.")
         command_parts = message.text.split(maxsplit=1)
         if len(command_parts) < 2:
             return await message.answer(
@@ -58,9 +64,12 @@ class AdminRouter(BaseRouter):
             user_id=message.from_user.id,
             category_type=category_type
         )
-        await message.answer(response)
+        return await message.answer(response)
 
-    async def add_handler(self, message: types.Message):
+    async def add_handler(self, message: types.Message, is_admin: bool):
+        if not is_admin:
+            return await message.answer("❌ Доступ запрещен. Требуются права администратора.")
+
         command_parts = message.text.split(maxsplit=2)
         category_type = command_parts[0][5:]
         print(category_type)
@@ -78,4 +87,16 @@ class AdminRouter(BaseRouter):
             category_name=category_name,
             task_text=task_text
         )
+        return await message.answer(response)
+
+    async def update_database(self, message: types.Message, is_admin: bool):
+        if not is_admin:
+            return await message.answer("❌ Доступ запрещен. Требуются права администратора.")
+
+        response = await self.task_service.fill_database_from_csv(
+            user_id=message.from_user.id
+        )
         await message.answer(response)
+
+        response = await self.task_service.fill_database_image()
+        return await message.answer(response)

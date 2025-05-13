@@ -17,6 +17,5 @@ class StartBotService:
         self.admin_router = AdminRouter(self.task_service)
 
     async def initialize(self):
-        await self.task_service.fill_categories_image()
-
-
+        await self.task_service.fill_database_image()
+        await self.task_service.fill_database_from_csv()
