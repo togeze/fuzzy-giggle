@@ -62,8 +62,8 @@ class UserRouter(BaseRouter):
                     username=current_username,
                     is_admin=is_admin or user.is_admin
                 )
-        how_task, what_task = await user_repo.get_random_task_pair(user)
-        print(f"What: {what_task.text}\nHow: {how_task.text}")
+
+
         await message.answer(
             "Добро пожаловать!",
             reply_markup=keyboard_service.get_main_keyboard()
@@ -120,7 +120,10 @@ class UserRouter(BaseRouter):
         )
 
     async def get_task(self, message: types.Message, is_admin: bool):
-        await message.answer("Задания временно отсутствуют")
+        user_repo = self.task_service.user_repo
+        user = await user_repo.get_by_telegram_id(message.from_user.id)
+        how_task, what_task = await user_repo.get_random_task_pair(user)
+        await message.answer(f"What: {what_task.text}\nHow: {how_task.text}")
 
     async def daily_start(self, message: types.Message, is_admin: bool):
         keyboard_service = KeyboardService(is_admin)
