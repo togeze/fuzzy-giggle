@@ -62,7 +62,8 @@ class UserRouter(BaseRouter):
                     username=current_username,
                     is_admin=is_admin or user.is_admin
                 )
-
+        how_task, what_task = await user_repo.get_random_task_pair(user)
+        print(f"What: {what_task.text}\nHow: {how_task.text}")
         await message.answer(
             "Добро пожаловать!",
             reply_markup=keyboard_service.get_main_keyboard()

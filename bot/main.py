@@ -41,11 +41,13 @@ async def main():
         dp.include_router(start_bot_service.admin_router.router)
 
     try:
+        print("Bot is running")
         await dp.start_polling(
             bot,
             allowed_updates=ALLOWED_UPDATES,
             skip_updates=True
         )
+
     finally:
         await bot.session.close()
 

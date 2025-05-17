@@ -1,11 +1,14 @@
 from abc import ABC, abstractmethod
 from typing import Optional
 
+from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select, delete, update, func
 from sqlalchemy.orm import selectinload
-from bot.database.models import Category, User, What, How, Image
+from bot.database.models import Category, User, What, How, Image, user_tasks
+from sqlalchemy import exists, and_, or_, func
 from sqlalchemy import true, false
+from bot.settings.config import MAX_ATTEMPTS
 
 
 from abc import ABC, abstractmethod
@@ -70,6 +73,61 @@ class UserRepository(BaseRepository):
         self.session.add(new_user)
         await self.session.commit()
         return new_user
+
+    async def get_random_task_pair(self, user: User) -> tuple[How, What]:
+        attempts = 0
+
+        async def get_random_how():
+            stmt = select(How).order_by(func.random()).limit(1)
+            result = await self.session.execute(stmt)
+            return result.scalar()
+
+        async def get_random_what():
+            stmt = select(What).order_by(func.random()).limit(1)
+            result = await self.session.execute(stmt)
+            return result.scalar()
+
+        while attempts < MAX_ATTEMPTS:
+            how_task = await get_random_how()
+            what_task = await get_random_what()
+
+            if not how_task or not what_task:
+                raise ValueError("Отсутствуют задания в базе данных")
+
+            # Проверяем, использовалась ли эта пара ранее
+            existing = await self.session.execute(
+                select(user_tasks)
+                .where(
+                    user_tasks.c.user_id == user.id,
+                    user_tasks.c.how_id == how_task.id,
+                    user_tasks.c.what_id == what_task.id
+                )
+            )
+            if existing.scalar():
+                attempts += 1
+                continue
+
+            try:
+                # Добавляем новую запись
+                await self.session.execute(
+                    user_tasks.insert().values(
+                        user_id=user.id,
+                        how_id=how_task.id,
+                        what_id=what_task.id
+                    )
+                )
+                await self.session.commit()
+                return how_task, what_task
+            except IntegrityError:
+                await self.session.rollback()
+                attempts += 1
+                continue
+
+        await self.session.execute(
+            user_tasks.delete().where(user_tasks.c.user_id == user.id)
+        )
+        await self.session.commit()
+        return await self.get_random_task_pair(user)
 
 
 class WhatRepository(BaseRepository):
