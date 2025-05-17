@@ -41,7 +41,7 @@ class CategoryRepository(BaseRepository):
     async def add(self, category: Category):
         existing = await self.get_by_name_and_type(category.name, category.type)
         if existing:
-            raise ValueError("❌ Категория с таким именем и типом уже существует")
+            raise ValueError("Категория с таким именем и типом уже существует")
         self.session.add(category)
         await self.session.commit()
 
@@ -83,7 +83,7 @@ class WhatRepository(BaseRepository):
     async def add(self, what_task: What):
         existing = await self.get_by_text(what_task.text)
         if existing:
-            raise ValueError("❌ What задача с таким именем уже существует")
+            raise ValueError("What задача с таким именем уже существует")
         self.session.add(what_task)
         await self.session.commit()
 
@@ -99,7 +99,7 @@ class HowRepository(BaseRepository):
     async def add(self, how_task: How):
         existing = await self.get_by_text(how_task.text)
         if existing:
-            raise ValueError("❌ How задача с таким именем уже существует")
+            raise ValueError("How задача с таким именем уже существует")
         self.session.add(how_task)
         await self.session.commit()
 
@@ -115,6 +115,6 @@ class ImageRepository(BaseRepository):
     async def add(self, image_task: Image):
         existing = await self.get_by_name(image_task.file_path)
         if existing:
-            raise ValueError("❌ Изображение с таким именем уже существует")
+            raise ValueError("Изображение с таким именем уже существует")
         self.session.add(image_task)
         await self.session.commit()

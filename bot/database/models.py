@@ -74,7 +74,7 @@ class How(Base):
     __tablename__ = 'how'
 
     id: Mapped[int] = mapped_column(primary_key=True)
-    text: Mapped[str] = mapped_column(Text)
+    text: Mapped[str] = mapped_column(Text, unique=True)
     category_id: Mapped[int] = mapped_column(ForeignKey('categories.id'))
 
     category: Mapped['Category'] = relationship(back_populates='how_tasks')
@@ -98,7 +98,7 @@ class Image(Base):
     __tablename__ = 'images'
 
     id: Mapped[int] = mapped_column(primary_key=True)
-    file_path: Mapped[str] = mapped_column(String(255))
+    file_path: Mapped[str] = mapped_column(String(255), unique=True)
     category_id: Mapped[int] = mapped_column(ForeignKey('categories.id'))
 
     category: Mapped['Category'] = relationship(back_populates='images')
