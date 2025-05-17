@@ -122,8 +122,13 @@ class UserRouter(BaseRouter):
     async def get_task(self, message: types.Message, is_admin: bool):
         user_repo = self.task_service.user_repo
         user = await user_repo.get_by_telegram_id(message.from_user.id)
-        how_task, what_task = await user_repo.get_random_task_pair(user)
-        await message.answer(f"What: {what_task.text}\nHow: {how_task.text}")
+        try:
+            how_task, what_task = await user_repo.get_random_task_pair(user)
+            await message.answer(f"What: {what_task.text}\nHow: {how_task.text}")
+        except Exception as e:
+            print(f"ℹ️ {str(e)}")
+            await message.answer(f"ℹ️ {str(e)}")
+
 
     async def daily_start(self, message: types.Message, is_admin: bool):
         keyboard_service = KeyboardService(is_admin)
